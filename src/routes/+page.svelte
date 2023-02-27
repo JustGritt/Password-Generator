@@ -3,7 +3,6 @@
 </svelte:head>
 
 <script>
-    // Import global styles here
     import "../global.css"
 
     $: password = generatePassword(parameters);
@@ -47,12 +46,34 @@
         }
         return password;
     }
+
+    const copyPassword = () => {
+        navigator.clipboard.writeText(password);
+
+        const popin = document.createElement("div");
+        popin.classList.add("popin");
+        popin.innerText = "Password copied to clipboard";
+        document.querySelector(".container").insertBefore(popin, document.querySelector(".container").firstChild);
+
+        if(document.querySelectorAll(".popin").length > 1) {
+            document.querySelector(".popin").remove();
+        }
+
+        setTimeout(() => { popin.remove() }, 2000);
+    }
 </script>
 
 <main class="flex">
     <input type="text" class="bold" value={password} disabled/>
     {#if !parameters.lowercase && !parameters.uppercase && !parameters.numbers && !parameters.symbols}
         <small>You have to select at least one parameter</small>
+    {/if}
+    {#if password.length}
+        <!-- Copy to clipboard -->
+        <button on:click={copyPassword}>Copy to clipboard</button>
+
+        <!-- Generate a new password -->
+        <button on:click={() => password = generatePassword(parameters)}>Generate new password</button>
     {/if}
 
     <section class="configuration">
@@ -157,11 +178,27 @@
             }
 
         }
+
         small {
             color: #fff;
             font-size: 2rem;
             margin: 0.5rem;
             text-transform: initial;
+        }
+
+        .popin {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100px;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            z-index: 100;
         }
     }
 </style>
