@@ -5,6 +5,8 @@
 <script>
     import "../global.css"
 
+    // Parameters for the password
+    $: popinActive = false;
     $: password = generatePassword(parameters);
     const letters = "abcdefghijklmnopqrstuvwxyz";
     const numbers = "0123456789";
@@ -14,11 +16,7 @@
         uppercase: true,
         numbers: true,
         symbols: true,
-        length: 8
-    }
-
-    const updatelength = () => {
-        return parameters.length;
+        length: 16
     }
 
     const generatePassword = (parameters) => {
@@ -50,39 +48,54 @@
     const copyPassword = () => {
         navigator.clipboard.writeText(password);
 
-        const popin = document.createElement("div");
-        popin.classList.add("popin");
-        popin.innerText = "Password copied to clipboard";
-        document.querySelector(".container").insertBefore(popin, document.querySelector(".container").firstChild);
-
-        if(document.querySelectorAll(".popin").length > 1) {
-            document.querySelector(".popin").remove();
-        }
-
-        setTimeout(() => { popin.remove() }, 2000);
+        if(popinActive) return
+        popinActive = true;
+        setTimeout(() => { popinActive = false }, 2000);
     }
 </script>
 
 <main class="flex">
-    <input type="text" class="bold" value={password} disabled/>
     {#if !parameters.lowercase && !parameters.uppercase && !parameters.numbers && !parameters.symbols}
-        <small>You have to select at least one parameter</small>
-    {/if}
-    {#if password.length}
-        <!-- Copy to clipboard -->
-        <button on:click={copyPassword}>Copy to clipboard</button>
-
-        <!-- Generate a new password -->
-        <button on:click={() => password = generatePassword(parameters)}>Generate new password</button>
+        <div class="info-card">
+            You have to select at least one parameter
+        </div>
     {/if}
 
-    <section class="configuration">
+    {#if popinActive}
+        <div class="info-card">
+            Password copied to clipboard
+        </div>
+    {/if}
+
+    <section id="main-section">
+        <h1>
+            When all you need is a <span class="accent">robust & shiny</span> new password
+        </h1>
+
+        <div>
+            <input type="text" class="password-info" placeholder="Hey! That's an Easter egg 🥚" value={password} disabled/>
+        </div>
+
+        {#if password.length}
+            <section class="button-section">
+                <button class="button-section-icon" on:click={copyPassword}>
+                    <img src="/src/assets/copy-icon.png" alt="Copy the Password">
+                </button>
+
+                <button class="button-section-icon" on:click={() => password = generatePassword(parameters)}>
+                    <img src="/src/assets/refresh-icon.png" alt="Refresh Password">
+                </button>
+            </section>
+        {/if}
+    </section>
+
+    <section id="configuration-section">
         <div class="options flex">
             {#each Object.keys(parameters) as parameter}
                 <div class="options_field flex">
                     {#if parameter === "length"}
-                        <p class="parameter-info">{parameters[parameter]}</p>
-                        <input type="range" name="{parameter}" id="{parameter}" min="8" max="128" bind:value={parameters[parameter]} on:change={updatelength} />
+                        <input type="number" class="parameter-info" placeholder="8 - 128" min="8" max="128" bind:value={parameters[parameter]} />
+                        <input type="range" name="{parameter}" id="{parameter}" min="8" max="128" bind:value={parameters[parameter]} on:change={parameters.length} />
                     {/if}
 
                     {#if parameter === "lowercase" || parameter === "uppercase" || parameter === "numbers" || parameter === "symbols"}
@@ -96,39 +109,131 @@
 </main>
 
 <style lang="scss">
+    @mixin flex($justify: center, $align: center) {
+        display: flex;
+        justify-content: $justify;
+        align-items: $align;
+    }
+
+    @mixin full-size($width: 100%, $height: 100%) {
+        width: $width;
+        height: $height;
+    }
+
+    @mixin gradient() {
+        background: linear-gradient(to right, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1);
+        background-size: 200%;
+        animation: moveGradient 4s ease infinite;
+    }
+
     main {
-        height: 100%;
-        width: 100%;
-        flex-direction: column;
+        @include flex();
+        @include full-size();
         text-align: center;
-        background: var(--secondary-color);
+        flex-direction: column;
+        background: var(--black);
         font-family: 'Nunito', sans-serif;
 
-        input[type='text'] {
-            font-size: clamp(var(--fs-h3), 5vw, var(--fs-h2));
-            margin: 1rem;
+        .info-card {
+            @include flex();
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100vw;
-            border: 0.5rem solid var(--primary-color);
+            height: 5vh;
             padding: 1rem;
-            border-radius: 1rem;
-            outline: none;
-            border: 0.5rem solid #ccc;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-colo);
+            background: var(--white);
+        }
+
+        #main-section {
+            @include flex(top, center);
+            margin-top: 5vh;
+            flex-direction: column;
+            flex: 1;
             @media screen and (min-width: 768px) {
-                min-width: fit-content;
-                width: 75vw;
+                @include flex();
+            }
+
+            h1 {
+                font-size: clamp(var(--fs-h2), 5vw, var(--fs-h1));
+                width: 90vw;
+                margin-top: 2rem;
+                color: var(--white);
+                @media screen and (min-width: 768px) {
+                    margin-top: 5rem;
+                }
+
+                .accent {
+                    @include gradient();
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    white-space: nowrap;
+                }
+            }
+
+            input[type="text"] {
+                font-size: clamp(var(--fs-h3), 5vw, var(--fs-h2));
+                width: 90vw;
+                max-width: 1200px;
+                margin: 1rem;
+                padding: 1rem;
+                outline: none;
+                border-radius: 1rem;
+                border: 0.5rem solid transparent;
+                background:
+                    linear-gradient(var(--white), var(--white)) padding-box,
+                    linear-gradient(to left top, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1) border-box;
+                background-size: 200%;
+                animation: moveGradient 5s ease infinite;
+                @media screen and (min-width: 768px) {
+                    min-width: fit-content;
+                    width: 75vw;
+                }
+            }
+
+            .button-section {
+                @include flex();
+                margin: 1rem;
+                &-icon {
+                    background: linear-gradient(to right top, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1);
+                    background-size: 200%;
+                    animation: moveGradient 14s ease infinite;
+                    border-radius: 100%;
+                    padding: 1.5rem;
+                    margin: 0 2rem;
+                    border: none;
+                    &:nth-child(2) {
+                        background: linear-gradient(to left top, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1);
+                        background-size: 200%;
+                        animation: moveGradient 6s ease infinite;
+                    }
+                    img {
+                        width: 2.5rem;
+                        cursor: pointer;
+                    }
+                }
             }
         }
 
         .options {
-            position: fixed;
-            bottom: 0px;
-            transform: translate(-50%, 0);
-            background: #fff;
-            width: 100vw;
+            background: var(--white);
+            width: 90vw;
+            margin: 1rem 0;
+            max-width: 1200px;
             text-transform: capitalize;
             user-select: none;
             flex-wrap: wrap;
-            border: 0.5rem solid #ccc;
+            border-radius: 1rem;
+            background:
+                linear-gradient(var(--white), var(--white)) padding-box,
+                linear-gradient(to top right, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1) border-box;
+            background-size: 200%;
+            animation: moveGradient 9s ease infinite;
+            border: 0.5rem solid transparent;
 
             @media screen and (min-width: 768px) {
                 bottom: 50px;
@@ -144,61 +249,81 @@
                 margin: 1rem;
                 font-weight: bold;
 
-                input[type='checkbox'] {
-                    display: none;
-
-                        + label {
-                        position: relative;
-                        height: 100%;
-                        width: 100%;
-                        padding: 1rem 1rem 2rem;
-                        cursor: pointer;
-                        transition: transform 0.2s ease-in-out;
-
-                        &:before {
-                            content: "✖";
-                            color: red;
-                            position: absolute;
-                            left: 50%;
-                            top: 75%;
-                            font-size: 1.25rem;
-                            transform: translate(-50%, -50%);
-                            font-weight: bold;
+                input {
+                    &[type='number'] {
+                        width: 15vw;
+                        border: 2px solid var(--black);
+                        padding: 0.5rem 1rem;
+                        border-radius: 8px;
+                        text-align: center;
+                        font-weight: bold;
+                        outline: none;
+                        font-family: 'Nunito', sans-serif;
+                        @media screen and (min-width: 768px) {
+                            width: 5vw;
+                            padding: 0.2rem 0.5rem;
                         }
-
                     }
 
-                    &:checked + label {
-                        &:before {
-                            content: "✔";
-                            color: green;
+                    &[type='range'] {
+                        width: 100%;
+                        margin-top: 0.5rem;
+                    }
+
+                    &[type='checkbox'] {
+                        display: none;
+                            + label {
+                            position: relative;
+                            height: 100%;
+                            width: 100%;
+                            padding: 1rem 1rem 2rem;
+                            cursor: pointer;
+                            transition: transform 0.2s ease-in-out;
+                            &:before {
+                                content: "✖";
+                                color: red;
+                                position: absolute;
+                                left: 50%;
+                                top: 75%;
+                                font-size: 1.25rem;
+                                transform: translate(-50%, -50%);
+                                font-weight: bold;
+                            }
+                        }
+
+                        &:checked + label {
+                            &:before {
+                                content: "✔";
+                                color: green;
+                            }
                         }
                     }
                 }
             }
-
         }
+    }
 
-        small {
-            color: #fff;
-            font-size: 2rem;
-            margin: 0.5rem;
-            text-transform: initial;
+    @keyframes moveGradient {
+        0% {
+            background-position: 0% 50%;
         }
+        50% {
+            background-position: 100% 0%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
 
-        .popin {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100px;
-            background: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2rem;
-            font-weight: bold;
-            z-index: 100;
+    @keyframes initPopin {
+        0% {
+            transform: translateY(-1000%);
+        }
+        50% {
+            transform: translateY(0);
+        }
+        100% {
+            transform: translateY(-100%);
         }
     }
 </style>
