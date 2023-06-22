@@ -79,11 +79,11 @@
         {#if password.length}
             <section class="button-section">
                 <button class="button-section-icon" on:click={copyPassword}>
-                    <img src="/src/assets/copy-icon.png" alt="Copy the Password">
+                    <img src="https://raw.githubusercontent.com/JustGritt/Password-Generator/main/src/assets/copy-icon.png" alt="Copy the Password">
                 </button>
 
                 <button class="button-section-icon" on:click={() => password = generatePassword(parameters)}>
-                    <img src="/src/assets/refresh-icon.png" alt="Refresh Password">
+                    <img src="https://raw.githubusercontent.com/JustGritt/Password-Generator/main/src/assets/refresh-icon.png" alt="Refresh Password">
                 </button>
             </section>
         {/if}
